@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AI Photo Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="header">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="8" stroke="url(#lg1)" stroke-width="1.5"/>
+          <circle cx="9" cy="9" r="3.5" fill="url(#lg1)"/>
+          <defs><linearGradient id="lg1" x1="0" y1="0" x2="18" y2="18"><stop offset="0%" stop-color="#c084fc"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs>
+        </svg>
+      </div>
+      <span class="logo-text">Photo<b>AI</b></span>
+    </div>
+    <div class="header-right">
+      <div class="api-pill" id="apiPill">
+        <span class="api-dot"></span>
+        <span>AI 연결됨</span>
+      </div>
+      <button class="hdr-btn" id="btnDownload" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        저장
+      </button>
+    </div>
+  </header>
+
+  <!-- Upload -->
+  <div class="upload-screen" id="uploadScreen">
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept="image/*" />
+      <div class="upload-content">
+        <div class="upload-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </div>
+        <p class="upload-title">사진 업로드</p>
+        <p class="upload-sub">드래그하거나 탭해서 선택 · JPG, PNG, WEBP</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editor -->
+  <div class="editor hidden" id="editorScreen">
+
+    <!-- Preview -->
+    <div class="preview" id="previewPanel">
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="compCanvas"></canvas>
+        <div class="ba-labels">
+          <span class="ba-label">원본</span>
+          <span class="ba-label">편집</span>
+        </div>
+        <div class="ai-overlay hidden" id="aiOverlay">
+          <div class="ai-ring">
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" class="spin">
+              <circle cx="22" cy="22" r="18" stroke="rgba(192,132,252,0.15)" stroke-width="3"/>
+              <path d="M22 4 A18 18 0 0 1 40 22" stroke="#c084fc" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <span id="aiStatusText">AI 처리 중...</span>
+          <small>약 10~30초 소요</small>
+        </div>
+      </div>
+      <div class="preview-foot">
+        <button class="btn-reset" id="btnReset">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          초기화
+        </button>
+        <span class="img-meta" id="imgMeta"></span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="tabs">
+        <button class="tab active" data-tab="angle">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          얼굴각도
+        </button>
+        <button class="tab" data-tab="camera">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 3l-4 4-4-4"/><circle cx="12" cy="14" r="3"/></svg>
+          카메라앵글
+        </button>
+        <button class="tab" data-tab="enhance">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          보정
+        </button>
+        <button class="tab" data-tab="filter">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13" cy="6" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="17" r="3"/><path d="M10 6H3M21 6h-5M9 12H3M21 12h-9M16 17H3"/></svg>
+          필터
+        </button>
+        <button class="tab" data-tab="ai">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          AI 복원
+        </button>
+      </div>
+
+      <div class="panes">
+
+        <!-- 얼굴각도 -->
+        <div class="pane active" id="pane-angle">
+          <div class="sec">
+            <div class="sec-head">
+              <span>얼굴 회전 시뮬레이션</span>
+              <span class="badge ai">AI</span>
+            </div>
+            <p class="sec-desc">슬라이더 조정 후 버튼을 눌러주세요.<br>FLUX Kontext AI가 실제로 얼굴 각도를 자연스럽게 바꿉니다.</p>
+            <div class="sliders">
+              <div class="sl-item">
+                <div class="sl-head"><span>좌우 회전 (Yaw)</span><b id="v-yaw">0°</b></div>
+                <input type="range" class="sl" id="sl-yaw" min="-45" max="45" value="0">
+                <div class="sl-marks"><span>-45°</span><span>0°</span><span>+45°</span></div>
+              </div>
+              <div class="sl-item">
+                <div class="sl-head"><span>상하 기울기 (Pitch)</span><b id="v-pitch">0°</b></div>
+                <input type="range" class="sl" id="sl-pitch" min="-30" max="30" value="0">
+                <div class="sl-marks"><span>-30°</span><span>0°</span><span>+30°</span></div>
+              </div>
+              <div class="sl-item">
+                <div class="sl-head"><span>고개 기울기 (Roll)</span><b id="v-roll">0°</b></div>
+                <input type="range" class="sl" id="sl-roll" min="-25" max="25" value="0">
+                <div class="sl-marks"><span>-25°</span><span>0°</span><span>+25°</span></div>
+              </div>
+            </div>
+            <button class="run-btn" id="btnApplyAngle">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              AI로 얼굴 각도 적용
+            </button>
+          </div>
+        </div>
+
+        <!-- 카메라앵글 -->
+        <div class="pane" id="pane-camera">
+          <div class="sec">
+            <div class="sec-head">
+              <span>카메라 앵글</span>
+              <span class="badge ai">AI</span>
+            </div>
+            <p class="sec-desc">앵글 선택 후 버튼을 누르면 AI가 해당 시점으로 재생성합니다.</p>
+            <div class="angle-grid">
+              <button class="ang-btn active" data-angle="eye-level" data-prompt="eye level camera angle, straight on neutral perspective, same person same scene">
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28"><circle cx="16" cy="11" r="5" stroke="#c084fc" stroke-width="1.5" fill="rgba(192,132,252,0.15)"/><path d="M7 26c0-4.5 4-7.5 9-7.5s9 3 9 7.5" stroke="#c084fc" stroke-width="1.5"/><line x1="2" y1="15" x2="30" y2="15" stroke="#c084fc" stroke-width="1" stroke-dasharray="3 2" opacity="0.6"/></svg>
+                <span>미들앵글</span>
+              </button>
+              <button class="ang-btn" data-angle="high-angle" data-prompt="high angle shot, camera positioned above looking down at subject, overhead perspective">
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28"><line x1="2" y1="4" x2="30" y2="4" stroke="#c084fc" stroke-width="1.5"/><path d="M16 4 L16 11" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="2 2"/><circle cx="16" cy="19" r="5" stroke="#c084fc" stroke-width="1.5" fill="rgba(192,132,252,0.15)"/><path d="M11 28 Q16 24 21 28" stroke="#c084fc" stroke-width="1.5"/></svg>
+                <span>하이앵글</span>
+              </button>
+              <button class="ang-btn" data-angle="low-angle" data-prompt="low angle shot, camera positioned below looking up at subject, dramatic upward perspective">
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28"><line x1="2" y1="28" x2="30" y2="28" stroke="#c084fc" stroke-width="1.5"/><path d="M16 28 L16 21" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="2 2"/><circle cx="16" cy="13" r="5" stroke="#c084fc" stroke-width="1.5" fill="rgba(192,132,252,0.15)"/><path d="M11 6 Q16 10 21 6" stroke="#c084fc" stroke-width="1.5"/></svg>
+                <span>로우앵글</span>
+              </button>
+              <button class="ang-btn" data-angle="birds-eye" data-prompt="bird's eye view, directly overhead top-down aerial view, 90 degrees above">
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28"><ellipse cx="16" cy="22" rx="11" ry="5" stroke="#c084fc" stroke-width="1.5" fill="rgba(192,132,252,0.1)"/><circle cx="16" cy="7" r="4.5" fill="rgba(192,132,252,0.5)"/><line x1="16" y1="12" x2="16" y2="17" stroke="#c084fc" stroke-width="1.5"/></svg>
+                <span>버드아이뷰</span>
+              </button>
+              <button class="ang-btn" data-angle="dutch-angle" data-prompt="dutch angle, tilted diagonal camera, canted angle shot, cinematic tilt">
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28"><g transform="rotate(18 16 16)"><circle cx="16" cy="11" r="5" stroke="#c084fc" stroke-width="1.5" fill="rgba(192,132,252,0.15)"/><line x1="2" y1="16" x2="30" y2="16" stroke="#c084fc" stroke-width="1" stroke-dasharray="3 2" opacity="0.6"/></g></svg>
+                <span>더치앵글</span>
+              </button>
+              <button class="ang-btn" data-angle="worm-eye" data-prompt="extreme worm's eye view, camera on the ground looking sharply upward, extreme upward angle">
+                <svg viewBox="0 0 32 32" fill="none" width="28" height="28"><ellipse cx="16" cy="28" rx="12" ry="3.5" stroke="#c084fc" stroke-width="1.5" fill="rgba(192,132,252,0.1)"/><path d="M7 28 L8 8 Q16 3 24 8 L25 28" stroke="#c084fc" stroke-width="1.5" fill="rgba(192,132,252,0.1)"/></svg>
+                <span>웜아이뷰</span>
+              </button>
+            </div>
+            <div class="sl-item" style="margin-top:12px">
+              <div class="sl-head"><span>앵글 강도</span><b id="v-angleStrength">중간</b></div>
+              <input type="range" class="sl" id="sl-angleStrength" min="1" max="3" value="2" step="1">
+              <div class="sl-marks"><span>약하게</span><span>중간</span><span>강하게</span></div>
+            </div>
+            <button class="run-btn" id="btnApplyCamera">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              AI로 카메라 앵글 적용
+            </button>
+          </div>
+        </div>
+
+        <!-- 보정 -->
+        <div class="pane" id="pane-enhance">
+          <div class="sec">
+            <div class="sec-head"><span>기본 보정</span><span class="badge instant">즉시</span></div>
+            <div class="sliders">
+              <div class="sl-item"><div class="sl-head"><span>밝기</span><b id="v-brightness">0</b></div><input type="range" class="sl" id="sl-brightness" min="-100" max="100" value="0"></div>
+              <div class="sl-item"><div class="sl-head"><span>대비</span><b id="v-contrast">0</b></div><input type="range" class="sl" id="sl-contrast" min="-100" max="100" value="0"></div>
+              <div class="sl-item"><div class="sl-head"><span>채도</span><b id="v-saturation">0</b></div><input type="range" class="sl" id="sl-saturation" min="-100" max="100" value="0"></div>
+              <div class="sl-item"><div class="sl-head"><span>선명도</span><b id="v-sharpness">0</b></div><input type="range" class="sl" id="sl-sharpness" min="0" max="100" value="0"></div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="sec">
+            <div class="sec-head"><span>빛 보정</span></div>
+            <div class="sliders">
+              <div class="sl-item"><div class="sl-head"><span>하이라이트</span><b id="v-highlights">0</b></div><input type="range" class="sl" id="sl-highlights" min="-100" max="100" value="0"></div>
+              <div class="sl-item"><div class="sl-head"><span>쉐도우</span><b id="v-shadows">0</b></div><input type="range" class="sl" id="sl-shadows" min="-100" max="100" value="0"></div>
+              <div class="sl-item"><div class="sl-head"><span>색온도</span><b id="v-temperature">0</b></div><input type="range" class="sl" id="sl-temperature" min="-100" max="100" value="0"></div>
+              <div class="sl-item"><div class="sl-head"><span>틴트</span><b id="v-tint">0</b></div><input type="range" class="sl" id="sl-tint" min="-100" max="100" value="0"></div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="sec">
+            <div class="sec-head"><span>효과</span></div>
+            <div class="sliders">
+              <div class="sl-item"><div class="sl-head"><span>비네팅</span><b id="v-vignette">0</b></div><input type="range" class="sl" id="sl-vignette" min="0" max="100" value="0"></div>
+              <div class="sl-item"><div class="sl-head"><span>필름 그레인</span><b id="v-grain">0</b></div><input type="range" class="sl" id="sl-grain" min="0" max="100" value="0"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 필터 -->
+        <div class="pane" id="pane-filter">
+          <div class="sec">
+            <div class="sec-head"><span>필터</span><span class="badge instant">즉시</span></div>
+            <div class="filter-grid">
+              <button class="f-btn active" data-filter="none"><div class="f-thumb" id="fp-none"></div><span>없음</span></button>
+              <button class="f-btn" data-filter="cinematic"><div class="f-thumb" id="fp-cinematic"></div><span>시네마틱</span></button>
+              <button class="f-btn" data-filter="hip"><div class="f-thumb" id="fp-hip"></div><span>힙</span></button>
+              <button class="f-btn" data-filter="moody"><div class="f-thumb" id="fp-moody"></div><span>무디</span></button>
+              <button class="f-btn" data-filter="vintage"><div class="f-thumb" id="fp-vintage"></div><span>빈티지</span></button>
+              <button class="f-btn" data-filter="dramatic"><div class="f-thumb" id="fp-dramatic"></div><span>드라마틱</span></button>
+              <button class="f-btn" data-filter="fade"><div class="f-thumb" id="fp-fade"></div><span>페이드</span></button>
+              <button class="f-btn" data-filter="cold"><div class="f-thumb" id="fp-cold"></div><span>콜드</span></button>
+              <button class="f-btn" data-filter="warm"><div class="f-thumb" id="fp-warm"></div><span>웜</span></button>
+              <button class="f-btn" data-filter="neon"><div class="f-thumb" id="fp-neon"></div><span>네온</span></button>
+            </div>
+            <div class="sl-item" style="margin-top:14px">
+              <div class="sl-head"><span>필터 강도</span><b id="v-filterIntensity">80%</b></div>
+              <input type="range" class="sl" id="sl-filterIntensity" min="0" max="100" value="80">
+            </div>
+          </div>
+        </div>
+
+        <!-- AI 복원 -->
+        <div class="pane" id="pane-ai">
+          <div class="sec">
+            <div class="sec-head"><span>얼굴 복원</span><span class="badge ai">GFPGAN</span></div>
+            <p class="sec-desc">흐릿하거나 저화질 얼굴을 AI로 선명하게 복원합니다.</p>
+            <div class="sl-item">
+              <div class="sl-head"><span>복원 강도</span><b id="v-gfpgan">80%</b></div>
+              <input type="range" class="sl" id="sl-gfpgan" min="0" max="100" value="80">
+            </div>
+            <button class="run-btn" id="btnGfpgan">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              얼굴 복원 실행
+            </button>
+          </div>
+          <div class="divider"></div>
+          <div class="sec">
+            <div class="sec-head"><span>화질 개선</span><span class="badge ai">Real-ESRGAN</span></div>
+            <p class="sec-desc">AI가 해상도와 선명도를 2배 개선합니다. 얼굴도 함께 보정됩니다.</p>
+            <button class="run-btn" id="btnUpscale">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              화질 개선 실행
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
